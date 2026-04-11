@@ -1,0 +1,7 @@
+app = "ai-provider-comparison"
+build.builder = "paketobuildpacks/builder:base"
+build.buildpacks = ["gcr.io/paketo-buildpacks/nodejs"]
+env.NODE_ENV = "production"
+env.DATABASE_URL = "${DATABASE_URL}"
+services.protocol = "tcp"
+services.internal_port = 3000

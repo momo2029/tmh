@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  tokenmaxhub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tokenmaxhub:latest
+    container_name: tmh-app
+    ports:
+      - "3300:3000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - tmh-network
+
+networks:
+  tmh-network:
+    driver: bridge

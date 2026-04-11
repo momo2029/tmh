@@ -1,0 +1,59 @@
+name: Deploy TokenMaxHub
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+        NEXTAUTH_URL: https://tokenmaxhub.com
+
+    - name: Deploy to Server via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST_TMH }}
+        username: root
+        key: ${{ secrets.SSH_PRIVATE_KEY_DEPLOY }}
+        script: |
+          # 进入部署目录
+          cd /opt/tmh
+
+          # 更新 docker-compose
+          docker compose pull
+
+          # 重启容器
+          docker compose up -d
+
+          # 运行 Prisma 迁移
+          docker compose exec -T tokenmaxhub npx prisma migrate deploy
+
+          # 清理旧镜像
+          docker image prune -f
+
+    - name: Health Check
+      run: |
+        echo "等待服务启动..."
+        sleep 10
+        curl -f https://tokenmaxhub.com || exit 1

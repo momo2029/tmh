@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/jf/code/server-tools/**)",
+      "Bash(openssl *)",
+      "Bash(tr *)",
+      "Bash(tar *)"
+    ]
+  },
+  "$version": 3
+}

@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AIProvider {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  website         String
+  description     String
+  logoUrl         String?  @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  models          Model[]
+  pricingHistory  PriceHistory[]
+  reviews         Review[]
+  uptimeData      UptimeData[]
+  tags            ProviderTag[]
+
+  // Indexes
+  @@index([name])
+}
+
+model Model {
+  id           String   @id @default(cuid())
+  name         String
+  type         String   // openai, claude, gemini, deepseek
+  multiplier   Float
+  providerId   String
+  provider     AIProvider @relation(fields: [providerId], references: [id])
+
+  // Relations
+  priceHistories PriceHistory[]
+
+  @@index([type])
+  @@index([providerId])
+}
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  providerId String
+  modelId   String?
+  model     Model?   @relation(fields: [modelId], references: [id])
+  provider  AIProvider @relation(fields: [providerId], references: [id])
+  price     Float
+  date      DateTime @default(now())
+
+  @@index([providerId, date])
+  @@index([modelId, date])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    AIProvider @relation(fields: [providerId], references: [id])
+  rating      Int      // 1-5 stars
+  comment     String
+  author      String   // could be user ID or anonymous
+  date        DateTime @default(now())
+  isVerified  Boolean  @default(false)
+  isApproved  Boolean  @default(false)
+
+  @@index([providerId])
+  @@index([date])
+}
+
+model UptimeData {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    AIProvider @relation(fields: [providerId], references: [id])
+  timestamp   DateTime @default(now())
+  uptime      Float    // percentage
+  responseTime Float   // milliseconds
+  status      String   // operational, degraded, down
+
+  @@index([providerId, timestamp])
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  color       String?
+
+  // Relations
+  providers   ProviderTag[]
+
+  @@index([name])
+}
+
+model ProviderTag {
+  providerId String
+  tagId      String
+  provider   AIProvider @relation(fields: [providerId], references: [id])
+  tag        Tag        @relation(fields: [tagId], references: [id])
+
+  @@primaryKey([providerId, tagId])
+  @@index([providerId])
+  @@index([tagId])
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String?
+  passwordHash   String?
+  role           String   @default("user") // user, admin
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  favorites      Favorite[]
+  priceAlerts    PriceAlert[]
+  reviews        Review[]
+
+  @@index([email])
+}
+
+model Favorite {
+  userId      String
+  providerId  String
+  user        User        @relation(fields: [userId], references: [id])
+  provider    AIProvider  @relation(fields: [providerId], references: [id])
+  createdAt   DateTime    @default(now())
+
+  @@primaryKey([userId, providerId])
+  @@index([userId])
+}
+
+model PriceAlert {
+  id          String   @id @default(cuid())
+  userId      String
+  providerId  String
+  modelType   String   // openai, claude, etc.
+  targetPrice Float
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  provider    AIProvider @relation(fields: [providerId], references: [id])
+
+  @@index([userId])
+  @@index([providerId])
+}
