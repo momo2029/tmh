@@ -21,14 +21,14 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci
+      run: npm install
 
     - name: Build application
       run: npm run build
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-        NEXTAUTH_URL: https://tokenmaxhub.com
+        NEXTAUTH_URL: https://tokenhubmax.com
 
     - name: Deploy to Server via SSH
       uses: appleboy/ssh-action@v1.0.3
@@ -37,18 +37,14 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVATE_KEY_DEPLOY }}
         script: |
-          # 进入部署目录
           cd /opt/tmh
-
-          # 更新 docker-compose
-          docker compose pull
-
-          # 重启容器
-          docker compose up -d
-
-          # 运行 Prisma 迁移
-          docker compose exec -T tokenmaxhub npx prisma migrate deploy
-
+          
+          # 停止旧容器
+          docker compose down || true
+          
+          # 重新构建并启动
+          docker compose up -d --build
+          
           # 清理旧镜像
           docker image prune -f
 
@@ -56,4 +52,4 @@ jobs:
       run: |
         echo "等待服务启动..."
         sleep 10
-        curl -f https://tokenmaxhub.com || exit 1
+        curl -f https://tokenhubmax.com || exit 1
