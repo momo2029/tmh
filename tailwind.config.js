@@ -8,6 +8,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        border: 'var(--border)',
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -24,7 +25,7 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif']
+        sans: ['Avenir Next', 'Trebuchet MS', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'sans-serif']
       }
     },
   },
