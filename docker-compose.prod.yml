@@ -8,7 +8,7 @@ services:
     image: tokenmaxhub:latest
     container_name: tmh-app
     ports:
-      - "3300:3000"
+      - "3400:3000"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
